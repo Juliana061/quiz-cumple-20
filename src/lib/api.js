@@ -43,6 +43,13 @@ export async function obtenerRankingPublico() {
   return (data ?? []).map((p) => ({ ...p, posicion: Number(p.posicion) }))
 }
 
+/** Respuestas de todos (solo admin). Cada persona trae `detalle` con sus 20 respuestas. */
+export async function obtenerRespuestas(clave) {
+  const { data, error } = await supabase.rpc('obtener_respuestas', { clave })
+  if (error) throw error
+  return (data ?? []).map((p) => ({ ...p, posicion: Number(p.posicion), detalle: p.detalle ?? [] }))
+}
+
 /** Pide el ranking con la contraseña. */
 export async function obtenerRanking(clave) {
   const { data, error } = await supabase.rpc('obtener_ranking', { clave })

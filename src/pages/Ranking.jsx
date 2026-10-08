@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import Fondo from '../components/Fondo'
 import Confeti from '../components/Confeti'
 import Cargando from '../components/Cargando'
+import RespuestasAdmin from '../components/RespuestasAdmin'
 import { contarPreguntas, obtenerRanking } from '../lib/api'
 import { guardarClaveRanking, leerClaveRanking } from '../lib/almacenamiento'
 import { mensajeDeError } from '../lib/utilidades'
@@ -29,6 +30,7 @@ export default function Ranking() {
   const [cargando, setCargando] = useState(() => Boolean(leerClaveRanking()))
   const [error, setError] = useState('')
   const [fase, setFase] = useState(0)
+  const [vista, setVista] = useState('ranking') // 'ranking' | 'respuestas'
   const temporizadores = useRef([])
 
   const limpiarTemporizadores = () => {
@@ -97,6 +99,7 @@ export default function Ranking() {
     setAutenticada(false)
     setRanking([])
     setFase(0)
+    setVista('ranking')
   }
 
   /* ---------------- Pantalla de contraseña ---------------- */
@@ -158,7 +161,7 @@ export default function Ranking() {
   return (
     <main className="pantalla pantalla-ranking">
       <Fondo cantidad={18} />
-      {fase >= 4 && <Confeti cantidad={120} />}
+      {vista === 'ranking' && fase >= 4 && <Confeti cantidad={120} />}
 
       <header className="ranking-encabezado">
         <h1 className="ranking-titulo">
@@ -170,7 +173,9 @@ export default function Ranking() {
         </p>
       </header>
 
-      {ranking.length === 0 ? (
+      {vista === 'respuestas' ? (
+        <RespuestasAdmin clave={leerClaveRanking()} />
+      ) : ranking.length === 0 ? (
         <section className="tarjeta centrado aparecer">
           <p className="emoji-grande">🦗</p>
           <p>Todavía nadie ha jugado. ¡Comparte el link!</p>
@@ -239,12 +244,18 @@ export default function Ranking() {
       )}
 
       <footer className="ranking-controles">
-        {ranking.length > 0 && fase < 4 && (
+        <button
+          className="boton boton-secundario"
+          onClick={() => setVista(vista === 'ranking' ? 'respuestas' : 'ranking')}
+        >
+          {vista === 'ranking' ? '📋 Ver respuestas' : '🏆 Ver ranking'}
+        </button>
+        {vista === 'ranking' && ranking.length > 0 && fase < 4 && (
           <button className="boton boton-secundario" onClick={mostrarTodo}>
             Mostrar todo
           </button>
         )}
-        {fase >= 4 && (
+        {vista === 'ranking' && fase >= 4 && (
           <button className="boton boton-secundario" onClick={revelar}>
             Repetir revelación
           </button>

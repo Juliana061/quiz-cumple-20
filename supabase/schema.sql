@@ -163,15 +163,14 @@ end;
 $$;
 
 
--- Devuelve el ranking SOLO si la clave coincide con la guardada en `config`.
--- Desempate: a igual puntaje, gana quien respondió primero (created_at).
-create or replace function public.obtener_ranking(clave text)
-returns table (posicion bigint, nombre text, puntaje int, created_at timestamptz)
+-- Verifica la contraseña de admin contra la guardada en `config`.
+-- Lanza un error si no coincide. La usan las funciones de admin de abajo.
+create or replace function public._verificar_clave_admin(clave text)
+returns void
 language plpgsql
 security definer
 set search_path = public
 as $$
-#variable_conflict use_column
 declare
   v_guardada text;
 begin
@@ -182,16 +181,71 @@ begin
     raise exception 'CLAVE_SIN_CONFIGURAR' using errcode = '28000';
   end if;
 
-  if obtener_ranking.clave is distinct from v_guardada then
+  if _verificar_clave_admin.clave is distinct from v_guardada then
     perform pg_sleep(1); -- frena un poco a quien intente adivinar la clave
     raise exception 'CLAVE_INCORRECTA' using errcode = '28P01';
   end if;
+end;
+$$;
+
+revoke all on function public._verificar_clave_admin(text) from public, anon, authenticated;
+
+
+-- Devuelve el ranking SOLO si la clave coincide con la guardada en `config`.
+-- Desempate: a igual puntaje, gana quien respondió primero (created_at).
+create or replace function public.obtener_ranking(clave text)
+returns table (posicion bigint, nombre text, puntaje int, created_at timestamptz)
+language plpgsql
+security definer
+set search_path = public
+as $$
+#variable_conflict use_column
+begin
+  perform _verificar_clave_admin(obtener_ranking.clave);
 
   return query
     select row_number() over (order by p.puntaje desc, p.created_at asc) as posicion,
            p.nombre,
            p.puntaje,
            p.created_at
+    from participantes p
+    order by p.puntaje desc, p.created_at asc;
+end;
+$$;
+
+
+-- Respuestas de TODOS los participantes (solo admin, con contraseña).
+-- `detalle` es un arreglo con una entrada por pregunta:
+--   { orden, pregunta, respuesta, correcta, acerto }
+create or replace function public.obtener_respuestas(clave text)
+returns table (posicion bigint, nombre text, puntaje int, created_at timestamptz, detalle jsonb)
+language plpgsql
+security definer
+set search_path = public
+as $$
+#variable_conflict use_column
+begin
+  perform _verificar_clave_admin(obtener_respuestas.clave);
+
+  return query
+    select row_number() over (order by p.puntaje desc, p.created_at asc) as posicion,
+           p.nombre,
+           p.puntaje,
+           p.created_at,
+           coalesce((
+             select jsonb_agg(
+                      jsonb_build_object(
+                        'orden',     pr.orden,
+                        'pregunta',  pr.texto,
+                        'respuesta', p.respuestas ->> pr.id::text,
+                        'correcta',  rc.correcta,
+                        'acerto',    coalesce((p.respuestas ->> pr.id::text) = rc.correcta, false)
+                      )
+                      order by pr.orden
+                    )
+             from preguntas pr
+             join respuestas_correctas rc on rc.pregunta_id = pr.id
+           ), '[]'::jsonb) as detalle
     from participantes p
     order by p.puntaje desc, p.created_at asc;
 end;
@@ -220,8 +274,10 @@ revoke all on function public.nombre_disponible(text)          from public;
 revoke all on function public.enviar_respuestas(text, jsonb)   from public;
 revoke all on function public.obtener_ranking(text)            from public;
 revoke all on function public.ranking_publico()                from public;
+revoke all on function public.obtener_respuestas(text)         from public;
 
 grant execute on function public.nombre_disponible(text)        to anon, authenticated;
 grant execute on function public.enviar_respuestas(text, jsonb) to anon, authenticated;
 grant execute on function public.obtener_ranking(text)          to anon, authenticated;
 grant execute on function public.ranking_publico()              to anon, authenticated;
+grant execute on function public.obtener_respuestas(text)       to anon, authenticated;

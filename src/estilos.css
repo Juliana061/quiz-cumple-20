@@ -1002,6 +1002,227 @@ code {
 }
 
 /* ---------------------------------------------------------------------
+   Admin: respuestas de todos
+   --------------------------------------------------------------------- */
+
+.respuestas-admin {
+  width: 100%;
+  max-width: 900px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.respuestas-pestanas {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.pestana {
+  min-height: 46px;
+  padding: 8px 18px;
+  border: var(--borde);
+  border-radius: 999px;
+  background: rgba(255, 248, 236, 0.15);
+  color: var(--crema);
+  font-family: var(--fuente-titulos);
+  font-weight: 600;
+  font-size: 1rem;
+  cursor: pointer;
+  border-color: var(--crema);
+}
+.pestana.activa {
+  background: var(--amarillo);
+  color: var(--tinta);
+  border-color: var(--tinta);
+  box-shadow: 3px 4px 0 var(--tinta);
+}
+.respuestas-pestanas .boton-mini {
+  margin-left: auto;
+}
+
+.campo-busqueda {
+  min-height: 48px;
+  font-size: 1rem;
+}
+
+.lista-personas,
+.lista-preguntas {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+/* Tarjeta desplegable de cada persona */
+.persona {
+  background: var(--crema);
+  color: var(--tinta);
+  border: var(--borde);
+  border-radius: 18px;
+  box-shadow: 3px 4px 0 var(--tinta);
+  overflow: hidden;
+}
+
+.persona summary {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 16px;
+  cursor: pointer;
+  list-style: none;
+  font-size: 1.05rem;
+}
+.persona summary::-webkit-details-marker {
+  display: none;
+}
+.persona summary::after {
+  content: '▾';
+  font-size: 1.2rem;
+  transition: transform 0.2s;
+}
+.persona[open] summary::after {
+  transform: rotate(180deg);
+}
+.persona[open] summary {
+  border-bottom: 2px dashed rgba(29, 11, 58, 0.25);
+}
+
+.persona-nombre {
+  flex: 1;
+  min-width: 0;
+  font-weight: 800;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.persona-fecha {
+  font-size: 0.8rem;
+  color: var(--tinta-suave);
+  white-space: nowrap;
+}
+
+@media (max-width: 480px) {
+  .persona-fecha {
+    display: none;
+  }
+}
+
+.detalle-respuestas {
+  margin: 0;
+  padding: 8px 12px 12px;
+  list-style: none;
+  display: grid;
+  gap: 6px;
+}
+
+@media (min-width: 760px) {
+  .detalle-respuestas {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+.detalle-respuestas li {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  padding: 8px 10px;
+  border-radius: 12px;
+  background: #e3fbf3;
+}
+.detalle-respuestas li.mal {
+  background: #ffe8ec;
+}
+.detalle-respuestas p {
+  margin: 0;
+}
+
+.detalle-icono {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  font-weight: 900;
+  color: #fff;
+  background: #12a37f;
+}
+.mal .detalle-icono {
+  background: #d6264f;
+}
+
+.detalle-pregunta {
+  font-size: 0.82rem;
+  color: var(--tinta-suave);
+}
+.detalle-respuesta {
+  font-weight: 800;
+}
+.detalle-correcta {
+  font-size: 0.85rem;
+  color: #12795f;
+  font-weight: 700;
+}
+
+/* Estadísticas por pregunta */
+.pregunta-stats {
+  max-width: none;
+}
+.pregunta-stats h3 {
+  margin: 0 0 4px;
+  font-family: var(--fuente-titulos);
+  font-weight: 600;
+  font-size: 1.15rem;
+}
+.stats-resumen {
+  color: var(--tinta-suave);
+}
+.stats-resumen strong {
+  color: var(--rosa);
+  font-size: 1.15em;
+}
+
+.stats-opciones {
+  margin: 8px 0 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.stats-texto {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  font-weight: 700;
+  font-size: 0.95rem;
+}
+
+.stats-barra {
+  height: 10px;
+  margin-top: 3px;
+  border-radius: 999px;
+  background: rgba(29, 11, 58, 0.1);
+  overflow: hidden;
+}
+.stats-barra div {
+  height: 100%;
+  border-radius: 999px;
+  background: var(--lila);
+  transition: width 0.5s ease;
+}
+.es-correcta .stats-texto {
+  color: #12795f;
+}
+.es-correcta .stats-barra div {
+  background: #12a37f;
+}
+
+/* ---------------------------------------------------------------------
    Animaciones
    --------------------------------------------------------------------- */
 
